@@ -10,5 +10,5 @@ Para executa-lo: sudo python3 dns_hunter.py
 
 Colaboradores do projeto:
 
-https://github.com/fegma59 \n
+* https://github.com/fegma59 
   implementou OO no código, Processamento Paralelo e Concorrência, com a finalidade de melhorar o desempenho e rapidez da enumeração, também implementou a escrita     do resultado em disco, em um arquivo, deixando assim mais facil de acessar os resultados. 
