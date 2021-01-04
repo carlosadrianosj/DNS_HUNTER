@@ -20,7 +20,7 @@ class Hunter:
 
     def is_root(self):
         permissao_do_usuario = os.geteuid()
-        if permissao_do_usuario != 0:
+        if permissao_do_usuario == 0:
             return True
         return False
 
