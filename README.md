@@ -7,3 +7,8 @@ a entrada de dados do usuário e a wordlist para configurar o alvo e seus possí
 que irá tentar estabelecer uma conexão. se a resposta for bem sucedida o programa listará a URL e o possivel IP deste servidor!
 
 Para executa-lo: sudo python3 dns_hunter.py
+
+Colaboradores do projeto:
+
+https://github.com/fegma59
+  implementou OO no código, Processamento Paralelo e Concorrência, com a finalidade de melhorar o desempenho e rapidez da enumeração, também implementou a escrita     do resultado em disco, em um arquivo, deixando assim mais facil de acessar os resultados. 
