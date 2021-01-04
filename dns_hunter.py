@@ -1,62 +1,69 @@
-#!/usr/bin/python3
-# -*- encoding: utf-8 -*-
-import socket, time, sys, os
-os.system('clear')
+import logging
+import os
+from queue import Queue
+from threading import Thread
+from time import time
+from lib_hunter import Hunter
+import time
 
-print('\033[35m'+'''
-\n\n\n
-                    ████████▄  ███▄▄▄▄      ▄████████                     
-                    ███   ▀███ ███▀▀▀██▄   ███    ███                     
-                    ███    ███ ███   ███   ███    █▀                      
-                    ███    ███ ███   ███   ███                            
-                    ███    ███ ███   ███ ▀███████████                     
-                    ███    ███ ███   ███          ███                     
-                    ███   ▄███ ███   ███    ▄█    ███                     
-                    ████████▀   ▀█   █▀   ▄████████▀                      
-                                                                          
-   ▄█    █▄    ███    █▄  ███▄▄▄▄       ███        ▄████████    ▄████████ 
-  ███    ███   ███    ███ ███▀▀▀██▄ ▀█████████▄   ███    ███   ███    ███ 
-  ███    ███   ███    ███ ███   ███    ▀███▀▀██   ███    █▀    ███    ███ 
- ▄███▄▄▄▄███▄▄ ███    ███ ███   ███     ███   ▀  ▄███▄▄▄      ▄███▄▄▄▄██▀ 
-▀▀███▀▀▀▀███▀  ███    ███ ███   ███     ███     ▀▀███▀▀▀     ▀▀███▀▀▀▀▀   
-  ███    ███   ███    ███ ███   ███     ███       ███    █▄  ▀███████████ 
-  ███    ███   ███    ███ ███   ███     ███       ███    ███   ███    ███ 
-  ███    █▀    ████████▀   ▀█   █▀     ▄████▀     ██████████   ███    ███ 
-                                                               ███    ███                 
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
-                       (programador: carlosadrianosj)
-            (Ferramenta criada para enumeração de servidores DNS)
-\n\n\n\
-''')
+logger = logging.getLogger(__name__)
+hunter = Hunter()
 
-#verifica se o programa foi executado em modo root
-permissão_do_usuario = os.geteuid()
-if permissão_do_usuario == 1000:
-      print("              Este programa precisa ser executado em modo ROOT!!")
-      time.sleep(0.5)
-      print("              Este programa precisa ser executado em modo ROOT!!")
-      time.sleep(0.5)
-      print("              Este programa precisa ser executado em modo ROOT!!")
-      time.sleep(0.5)
-      print("                  Exemplo: sudo python3 dns_hunter.py\n\n\n\n")
-      time.sleep(0.5)
-      os._exit()
-elif permissão_do_usuario == 0:
-      pass
+class HeartBeatWorker(Thread):
 
-#coleta do alvo
-dominio  = input("Digite seu alvo | (Ex: google.com): ")
+    def __init__(self, queue):
+        Thread.__init__(self)
+        self.queue = queue
 
-#faz a leitura do dns_bruteforce.txt, tenta pingar no alvo com a pesquisa do arquivo, se positivo, printa na tela,
-#se não, continua a lista 
-with open("dns_bruteforce.txt", "r") as arquivo:
-    dns_bruteforce = arquivo.readlines()
-for nome in dns_bruteforce:
-    DNS = nome.strip("\n") + "." + dominio
-    try:
-        print("#| " + DNS + ": " + socket.gethostbyname(DNS))
-        
-    except socket.gaierror:
-        pass
-print("\n\nEnumeração feita com sucesso!!")
-    
+
+    def run(self):
+        while True:
+            # Get the work from the queue and expand the tuple
+            target_domain, domain_in_bruteforce = self.queue.get()
+            try:
+                print(hunter.heartbeat(target_domain, domain_in_bruteforce))
+            except Exception as e:
+                logging.info(e)
+            finally:
+                self.queue.task_done()
+
+
+def main():
+    print(hunter.get_banner())
+    print('Checking Permissions')
+    time.sleep(5)
+    if not hunter.is_root():
+        for i in range(5):
+            print("              Este programa precisa ser executado em modo ROOT!!")
+        os._exit(0)
+    domain_target = hunter.get_user_parameters("Digite seu alvo | (Ex: google.com): ")
+    cores_for_parallelism = hunter.get_user_parameters("digite a quantidade de nucleos de processamento para uso de paralelismo | (Ex: 8):")
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+    wordlist = os.path.join(base_dir, 'dns_bruteforce.txt')
+
+    # Create a queue to communicate with the worker threads
+    queue = Queue()
+    # Create 8 worker threads
+    with open(wordlist, "r") as arquivo:
+        dns_bruteforce = arquivo.readlines()
+
+    for x in range(int(cores_for_parallelism)):
+        worker = HeartBeatWorker(queue)
+        # Setting daemon to True will let the main thread exit even though the workers are blocking
+        worker.daemon = True
+        worker.start()
+        # Put the tasks into the queue as a tuple
+
+    for domain in dns_bruteforce:
+        try:
+            logger.info('Queueing {}'.format(domain))
+            queue.put((domain_target, domain))
+        except Exception as e:
+            print(e)
+    queue.join()
+    pass
+
+if __name__ == '__main__':
+    main()
