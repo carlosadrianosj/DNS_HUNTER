@@ -20,7 +20,7 @@ class Hunter:
 
     def is_root(self):
         permissao_do_usuario = os.geteuid()
-        if permissao_do_usuario == 0:
+        if permissao_do_usuario != 0:
             return True
         return False
 
@@ -32,7 +32,7 @@ class Hunter:
             DNS = nome.strip("\n") + "." + target_domain
             try:
                 print("#| " + DNS + ": " + socket.gethostbyname(DNS))
-                with open('dns_hunter_result.txt', 'w') as output:
+                with open('dns_hunter_result.txt', 'a') as output:
                     output.write("#| " + DNS + ": " + socket.gethostbyname(DNS))
 
             except socket.gaierror:
@@ -40,19 +40,6 @@ class Hunter:
         return ("\n\nEnumeração feita com sucesso!!")
 
 
-    def hunt(self):
-        hunter = Hunter()
-        print(self.get_banner())
-        if not self.is_root():
-            for i in range(5):
-                print("              Este programa precisa ser executado em modo ROOT!!")
-            os._exit(0)
-
-        target = self.get_target()
-        return self.heartbeat(target)
-
-
-# Press the green button in the gutter to run the script.
 if __name__ == '__main__':
     hunt = Hunter()
     print(hunt.hunt())
