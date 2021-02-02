@@ -11,12 +11,6 @@ class Hunter:
     def __init__(self):
         self.base_dir = os.path.dirname(os.path.abspath(__file__))
         self.wordlist = os.path.join(self.base_dir, 'dns_bruteforce.txt')
-        self.banner = os.path.join(self.base_dir, 'banner.txt')
-
-    def get_banner(self):
-        os.system('clear')
-        with open(self.banner, 'r') as banner:
-            return '\033[35m'+ banner.read()
 
     def is_root(self):
         permissao_do_usuario = os.geteuid()

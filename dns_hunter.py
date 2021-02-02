@@ -4,12 +4,14 @@ from queue import Queue
 from threading import Thread
 from time import time
 from lib_hunter import Hunter
+from lib_utils import Banner
 import time
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
 logger = logging.getLogger(__name__)
 hunter = Hunter()
+banner = Banner()
 
 class HeartBeatWorker(Thread):
 
@@ -31,7 +33,7 @@ class HeartBeatWorker(Thread):
 
 
 def main():
-    print(hunter.get_banner())
+    print(banner.get_banner())
     print('Checking Permissions')
     time.sleep(5)
     if not hunter.is_root():
